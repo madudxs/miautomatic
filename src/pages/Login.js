@@ -15,13 +15,22 @@ const Login = () => {
     return () => {
       document.body.style.backgroundColor = '';
     };
-  }, [theme]); 
+  }, [theme]);
 
   useEffect(() => {
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+
+    const preventScroll = (e) => e.preventDefault();
+    document.addEventListener('touchmove', preventScroll, { passive: false });
 
     return () => {
+      document.documentElement.style.overflow = 'auto';
       document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+
+      document.removeEventListener('touchmove', preventScroll);
     };
   }, []);
 
@@ -35,7 +44,7 @@ const Login = () => {
         position="absolute"
         top={0}
         width="100%"
-        zIndex={10} 
+        zIndex={10}
       >
         <img src={logo} alt="Logo" style={{ maxWidth: '400px', width: '100%' }} />
       </Box>
@@ -57,8 +66,8 @@ const Login = () => {
           width="100%"
           maxWidth="400px"
           zIndex={1}
-          >
-        <Typography variant='h5'>Acesse sua conta</Typography>
+        >
+          <Typography variant="h5">Acesse sua conta</Typography>
           <TextField label="E-mail" variant="outlined" fullWidth margin="normal" />
           <TextField label="Senha" type="password" variant="outlined" fullWidth margin="normal" />
           <Button variant="contained" color="primary" fullWidth>
@@ -75,9 +84,9 @@ const Login = () => {
         <Box
           position="absolute"
           bottom="0"
-          transform="translateX(-50%)" 
+          transform="translateX(-50%)"
           width="100%"
-          maxWidth="300px" 
+          maxWidth="300px"
         >
           <Player
             autoplay
@@ -85,7 +94,7 @@ const Login = () => {
             src={animation}
             style={{
               width: '100%',
-              height: 'auto', 
+              height: 'auto',
             }}
           />
         </Box>

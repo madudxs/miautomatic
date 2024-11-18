@@ -68,7 +68,7 @@ const Configuracao = () => {
     const { checked } = event.target;
     setIsEveryday(checked);
     if (checked) {
-      setSelectedDays([]); // Limpa os dias selecionados ao ativar "todos os dias"
+      setSelectedDays([]); 
     }
   };
 
@@ -114,7 +114,7 @@ const Configuracao = () => {
       padding={2}
       overflow="hidden"
     >
-      <Typography variant="subtitle1">Determine a quantidade e horário das refeições automáticas</Typography>
+      <Typography variant="subtitle1">Determine a quantidade e horário das refeições automáticas:</Typography>
 
       <FormControl fullWidth margin="normal">
         <InputLabel>Quantas refeições fornecer por dia?</InputLabel>

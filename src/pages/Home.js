@@ -17,6 +17,23 @@ const Home = () => {
     };
   }, [theme]);
 
+  useEffect(() => {
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+
+    const preventScroll = (e) => e.preventDefault();
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+
+    return () => {
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+
+      document.removeEventListener('touchmove', preventScroll);
+    };
+  }, []);
+
   const calculateTimeUntilNextMeal = () => {
     const config = JSON.parse(localStorage.getItem('mealConfig'));
     if (!config || !config.mealTimes || config.mealTimes.length === 0) {
