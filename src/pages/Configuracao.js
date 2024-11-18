@@ -1,47 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, FormControlLabel, Checkbox, Grid, Select, MenuItem, InputLabel, FormControl, Typography } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Button,
+  FormControlLabel,
+  Checkbox,
+  Grid,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Typography,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useNavigate } from 'react-router-dom';
 
 const Configuracao = () => {
-  const [mealCount, setMealCount] = useState(1); 
-  const [mealTimes, setMealTimes] = useState([null]); 
-  const [isEveryday, setIsEveryday] = useState(false); 
-  const [selectedDays, setSelectedDays] = useState([]); 
+  const [mealCount, setMealCount] = useState(1);
+  const [mealTimes, setMealTimes] = useState([""]);
+  const [isEveryday, setIsEveryday] = useState(false);
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const theme = useTheme(); 
+  const theme = useTheme();
 
   useEffect(() => {
     document.body.style.backgroundColor = theme.palette.background.default;
-
-    return () => {
-      document.body.style.backgroundColor = '';
-    };
-  }, [theme]); 
-
-  useEffect(() => {
     document.body.style.overflow = 'hidden';
 
     return () => {
+      document.body.style.backgroundColor = '';
       document.body.style.overflow = 'auto';
     };
-  }, []);
+  }, [theme]);
 
   const handleMealCountChange = (event) => {
-    const count = event.target.value;
+    const count = parseInt(event.target.value, 10);
     setMealCount(count);
 
-    setMealTimes(Array(count).fill(null)); 
+    setMealTimes((prevMealTimes) => {
+      const updatedMealTimes = [...prevMealTimes];
+      if (updatedMealTimes.length < count) {
+        updatedMealTimes.push(...Array(count - updatedMealTimes.length).fill(""));
+      } else {
+        updatedMealTimes.length = count;
+      }
+      return updatedMealTimes;
+    });
   };
 
   const handleTimeChange = (index, newTime) => {
-    const updatedMealTimes = [...mealTimes];
-    updatedMealTimes[index] = newTime;
-    setMealTimes(updatedMealTimes); 
-    console.log(`Horário da refeição ${index + 1} atualizado:`, newTime);  
+    setMealTimes((prevMealTimes) => {
+      const updatedMealTimes = [...prevMealTimes];
+      updatedMealTimes[index] = newTime;
+      return updatedMealTimes;
+    });
   };
 
   const handleDayChange = (day) => {
@@ -54,35 +68,54 @@ const Configuracao = () => {
     const { checked } = event.target;
     setIsEveryday(checked);
     if (checked) {
-      setSelectedDays([]); 
+      setSelectedDays([]); // Limpa os dias selecionados ao ativar "todos os dias"
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (mealTimes.some((time) => !time || !/^([01]?[0-9]|2[0-3]):([0-5]?[0-9])$/.test(time))) {
+      alert('Todos os horários devem ser definidos e no formato HH:MM.');
+      return;
+    }
+
     const config = {
       mealCount,
-      mealTimes,
+      mealTimes: mealTimes.map((time) => ({ time, fed: false, lastFedDate: "" })),
       isEveryday,
       selectedDays,
     };
 
-    console.log('Configurações antes de salvar:', config); 
-    localStorage.setItem('mealConfig', JSON.stringify(config));
+    console.log(config);
+    setLoading(true);
 
-    navigate('/principal');
+    try {
+      await fetch('https://miautomatic-backend.onrender.com/save-meal-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+
+      localStorage.setItem('mealConfig', JSON.stringify(config));
+      navigate('/Home');
+    } catch (error) {
+      alert('Erro ao salvar configurações.');
+    } finally {
+      setLoading(false);
+    }
   };
-  
+
   return (
-  <Box
-    display="flex"
-    flexDirection="column"
-    alignItems="center"
-    justifyContent="center"
-    minHeight="100vh"
-    padding={2}
-    overflow="hidden"
-  >
-     <Typography variant='subtitle1'>Determine quantidade e horário das refeições automáticas</Typography>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      minHeight="100vh"
+      padding={2}
+      overflow="hidden"
+    >
+      <Typography variant="subtitle1">Determine a quantidade e horário das refeições automáticas</Typography>
+
       <FormControl fullWidth margin="normal">
         <InputLabel>Quantas refeições fornecer por dia?</InputLabel>
         <Select
@@ -98,19 +131,16 @@ const Configuracao = () => {
         </Select>
       </FormControl>
 
-      {Array.from({ length: mealCount }).map((_, index) => (
+      {mealTimes.map((time, index) => (
         <TextField
           key={index}
           label={`Horário da refeição ${index + 1}`}
-          value={mealTimes[index] || ""}
+          value={time}
           onChange={(e) => handleTimeChange(index, e.target.value)}
           type="time"
-          inputProps={{
-            step: 60, 
-          }}
+          inputProps={{ step: 60 }}
           fullWidth
           margin="normal"
-          style={{ marginTop: '20px' }}
         />
       ))}
 
@@ -123,7 +153,7 @@ const Configuracao = () => {
         <Box display="flex" flexDirection="column" marginTop={2}>
           <Grid container spacing={2}>
             {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((day, index) => (
-              <Grid item xs={4} key={index}>
+              <Grid item xs={6} sm={4} md={3} key={index}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -145,8 +175,9 @@ const Configuracao = () => {
         fullWidth
         style={{ marginTop: '20px' }}
         onClick={handleSave}
+        disabled={loading}
       >
-        Salvar Configuração
+        {loading ? 'Salvando...' : 'Salvar Configuração'}
       </Button>
     </Box>
   );

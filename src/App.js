@@ -4,7 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './styles/theme';
 import Login from './pages/Login';
 import Cadastro from './pages/Cadastro';
-import Principal from './pages/Principal';
+import Home from './pages/Home';
 import Configuracao from './pages/Configuracao';
 
 const App = () => {
@@ -13,7 +13,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/principal" element={<Principal />} />
+        <Route path="/Home" element={<Home />} />
         <Route path="/configuracao" element={<Configuracao />} />
         <Route path="/cadastro" element={<Cadastro />} />
       </Routes>
